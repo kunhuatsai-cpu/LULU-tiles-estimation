@@ -412,12 +412,12 @@
                     <div class="col-span-10 grid grid-cols-2 gap-3">
                         <div class="relative">
                             <input type="number" id="area_length_${id}" placeholder="長度 cm" data-id="${id}"
-                                   class="w-full p-2.5 text-xs border border-gray-200 rounded-md focus:border-brand-main bg-gray-50 focus:bg-white"
+                                   class="area-length w-full p-2.5 text-xs border border-gray-200 rounded-md focus:border-brand-main bg-gray-50 focus:bg-white"
                                    value="${lengthValue}" min="0.1" step="0.1" oninput="calculateTiles()">
                         </div>
                         <div class="relative">
                             <input type="number" id="area_width_${id}" placeholder="寬度 cm" data-id="${id}"
-                                   class="w-full p-2.5 text-xs border border-gray-200 rounded-md focus:border-brand-main bg-gray-50 focus:bg-white"
+                                   class="area-width w-full p-2.5 text-xs border border-gray-200 rounded-md focus:border-brand-main bg-gray-50 focus:bg-white"
                                    value="${widthValue}" min="0.1" step="0.1" oninput="calculateTiles()">
                         </div>
                     </div>
@@ -496,15 +496,17 @@
         }
 
         function calculateTiles() {
-            const checkedMode = document.querySelector('input[name="calc_mode"]:checked');
-            if (!checkedMode) return;
-            const calcMode = checkedMode.value;
+            const checkedModeElement = document.querySelector('input[name="calc_mode"]:checked');
+            if (!checkedModeElement) return;
+            const calcMode = checkedModeElement.value;
 
             const tileModel = document.getElementById('tile_model').value.trim() || "未指定";
             const tileLength = parseFloat(document.getElementById('tile_length').value);
             const tileWidth = parseFloat(document.getElementById('tile_width').value);
             const tileRate = parseFloat(document.getElementById('tile_rate').value);
-            const wastePercent = parseFloat(document.getElementById('waste_percent').value);
+            // 改進：如果損耗是空值，預設為 0，避免計算中斷
+            const wastePercentInput = document.getElementById('waste_percent').value;
+            const wastePercent = wastePercentInput === "" ? 0 : parseFloat(wastePercentInput);
 
             let isTileInputValid = true;
             if (calcMode === 'dimension') {
@@ -513,6 +515,7 @@
                 if (!tileRate || tileRate <= 0) isTileInputValid = false;
             }
 
+            // 檢查基本驗證，但允許 wastePercent 為 0
             if (!isTileInputValid || isNaN(wastePercent) || wastePercent < 0) {
                 resetResults();
                 return;
@@ -526,16 +529,19 @@
                 return;
             }
 
-            let allAreasValid = true;
             areas.forEach(area => {
-                const inputs = area.querySelectorAll('input');
-                const len = parseFloat(inputs[0].value);
-                const wid = parseFloat(inputs[1].value);
+                // 改進：更明確地選取長寬輸入框，避免結構變更出錯
+                const lenInput = area.querySelector('.area-length');
+                const widInput = area.querySelector('.area-width');
+                
+                // 改進：將空值視為 0，防止 NaN 擴散
+                const len = lenInput ? (parseFloat(lenInput.value) || 0) : 0;
+                const wid = widInput ? (parseFloat(widInput.value) || 0) : 0;
 
                 if (len > 0 && wid > 0) {
                     totalAreaSqUnit += len * wid;
-                } else if (!len && len !== 0 || !wid && wid !== 0) {
                 }
+                // 單行不完整時不計算該行，但不中斷整體計算
             });
 
             if (totalAreaSqUnit <= 0) {
@@ -558,6 +564,13 @@
             const finalPieces = Math.ceil(basePiecesFloat + wastePiecesFloat);
 
             // Updated Brand Text for LU LU Tiles
+            document.getElementById('result_pieces').textContent = finalPieces.toLocaleString('en-US');
+            document.getElementById('result_area_sq_unit').textContent = parseFloat(totalPing.toFixed(2)).toLocaleString('en-US');
+            document.getElementById('result_area_m2').textContent = parseFloat(totalAreaM2.toFixed(2)).toLocaleString('en-US');
+            document.getElementById('base_pieces').textContent = Math.ceil(basePiecesFloat).toLocaleString('en-US');
+            document.getElementById('waste_pieces').textContent = Math.ceil(wastePiecesFloat).toLocaleString('en-US');
+            document.getElementById('waste_display').textContent = wastePercent;
+
             const today = new Date().toLocaleDateString('zh-TW');
             let copyText = `【LU LU Tiles 庫存查詢】\nDATE: ${today}\n------------------------------\n型號: ${tileModel}\n\n需求總數: ${finalPieces} 片\n(含 ${wastePercent}% 損耗)\n\n總面積: ${parseFloat(totalAreaM2.toFixed(2))} M2 (${parseFloat(totalPing.toFixed(2))} 坪)\n------------------------------`;
             
