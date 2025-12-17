@@ -188,7 +188,8 @@
                     <!-- Model Name -->
                     <div class="col-span-2">
                         <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">型號 / 名稱</label>
-                        <input type="text" id="tile_model" placeholder="例如：LU-8080 大理石紋" class="w-full p-3">
+                        <input type="text" id="tile_model" placeholder="例如：LU-8080 大理石紋" class="w-full p-3" 
+                               oninput="calculateTiles()" onchange="calculateTiles()" onkeyup="calculateTiles()">
                     </div>
 
                     <!-- Mode Toggle -->
@@ -212,14 +213,16 @@
                         <div>
                             <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">長度 (Length)</label>
                             <div class="relative">
-                                <input type="number" id="tile_length" placeholder="60" value="60" class="w-full p-3 pr-8" inputmode="decimal" step="any">
+                                <input type="number" id="tile_length" placeholder="60" value="60" class="w-full p-3 pr-8" inputmode="decimal" step="any"
+                                       oninput="calculateTiles()" onchange="calculateTiles()" onkeyup="calculateTiles()">
                                 <span class="absolute right-3 top-3 text-xs text-gray-400 font-mono">cm</span>
                             </div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">寬度 (Width)</label>
                             <div class="relative">
-                                <input type="number" id="tile_width" placeholder="30" value="30" class="w-full p-3 pr-8" inputmode="decimal" step="any">
+                                <input type="number" id="tile_width" placeholder="30" value="30" class="w-full p-3 pr-8" inputmode="decimal" step="any"
+                                       oninput="calculateTiles()" onchange="calculateTiles()" onkeyup="calculateTiles()">
                                 <span class="absolute right-3 top-3 text-xs text-gray-400 font-mono">cm</span>
                             </div>
                         </div>
@@ -229,7 +232,8 @@
                     <div id="tile_rate_input" class="col-span-2 hidden">
                         <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">每平米用量</label>
                         <div class="relative">
-                            <input type="number" id="tile_rate" placeholder="11" value="11" class="w-full p-3 pr-12" inputmode="decimal" step="any">
+                            <input type="number" id="tile_rate" placeholder="11" value="11" class="w-full p-3 pr-12" inputmode="decimal" step="any"
+                                   oninput="calculateTiles()" onchange="calculateTiles()" onkeyup="calculateTiles()">
                             <span class="absolute right-3 top-3 text-xs text-gray-400 font-mono">片/m²</span>
                         </div>
                     </div>
@@ -252,7 +256,8 @@
                         <label class="text-xs text-brand-dark font-bold">預抓損耗</label>
                         <input type="number" id="waste_percent" value="10" 
                                class="w-12 p-0 bg-transparent border-none text-right text-xs font-mono font-bold text-brand-main focus:ring-0"
-                               inputmode="decimal" step="any">
+                               inputmode="decimal" step="any"
+                               oninput="calculateTiles()" onchange="calculateTiles()" onkeyup="calculateTiles()">
                         <span class="text-xs text-brand-dark font-bold">%</span>
                     </div>
                 </div>
@@ -414,7 +419,7 @@
         }
 
         function createAreaInputHTML(id, areaNumber, lengthValue = '', widthValue = '') {
-            // 移除所有的 oninput="..."，改用全域監聽，減少出錯機率
+            // 雙重保險：即使全域監聽失敗，行內監聽也能保證觸發
             return `
                 <div id="area-${id}" class="area-item group grid grid-cols-12 gap-3 items-center bg-white p-2 rounded-lg border border-gray-100 hover:border-brand-main/50 hover:shadow-sm transition-all">
                     <div class="col-span-1 flex justify-center">
@@ -427,12 +432,14 @@
                         <div class="relative">
                             <input type="number" id="area_length_${id}" placeholder="長度 cm" data-id="${id}"
                                    class="w-full p-2.5 text-xs border border-gray-200 rounded-md focus:border-brand-main bg-gray-50 focus:bg-white"
-                                   value="${lengthValue}" min="0.1" step="0.1" inputmode="decimal" step="any">
+                                   value="${lengthValue}" min="0.1" step="0.1" inputmode="decimal" step="any"
+                                   oninput="calculateTiles()" onchange="calculateTiles()" onkeyup="calculateTiles()">
                         </div>
                         <div class="relative">
                             <input type="number" id="area_width_${id}" placeholder="寬度 cm" data-id="${id}"
                                    class="w-full p-2.5 text-xs border border-gray-200 rounded-md focus:border-brand-main bg-gray-50 focus:bg-white"
-                                   value="${widthValue}" min="0.1" step="0.1" inputmode="decimal" step="any">
+                                   value="${widthValue}" min="0.1" step="0.1" inputmode="decimal" step="any"
+                                   oninput="calculateTiles()" onchange="calculateTiles()" onkeyup="calculateTiles()">
                         </div>
                     </div>
 
@@ -599,10 +606,11 @@
             }
         }
 
-        // 頁面載入完成後初始化 (移除 DOMContentLoaded)
-        addArea('300', '200');
-        // 初始化輸入介面狀態
-        updateTileInputs();
+        // 使用 window.onload 確保所有資源載入完畢後才初始化
+        window.onload = function() {
+            addArea('300', '200');
+            updateTileInputs();
+        };
     </script>
 </body>
 </html>
