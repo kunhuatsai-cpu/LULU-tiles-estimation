@@ -189,7 +189,7 @@
                     <div class="col-span-2">
                         <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">型號 / 名稱</label>
                         <input type="text" id="tile_model" placeholder="例如：LU-8080 大理石紋" 
-                               class="w-full p-3" oninput="calculateTiles()">
+                               class="w-full p-3" oninput="calculateTiles()" onkeyup="calculateTiles()" onchange="calculateTiles()">
                     </div>
 
                     <!-- Mode Toggle -->
@@ -213,14 +213,16 @@
                         <div>
                             <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">長度 (Length)</label>
                             <div class="relative">
-                                <input type="number" id="tile_length" placeholder="60" value="60" class="w-full p-3 pr-8" oninput="calculateTiles()">
+                                <input type="number" id="tile_length" placeholder="60" value="60" class="w-full p-3 pr-8" 
+                                       oninput="calculateTiles()" onkeyup="calculateTiles()" onchange="calculateTiles()">
                                 <span class="absolute right-3 top-3 text-xs text-gray-400 font-mono">cm</span>
                             </div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">寬度 (Width)</label>
                             <div class="relative">
-                                <input type="number" id="tile_width" placeholder="30" value="30" class="w-full p-3 pr-8" oninput="calculateTiles()">
+                                <input type="number" id="tile_width" placeholder="30" value="30" class="w-full p-3 pr-8" 
+                                       oninput="calculateTiles()" onkeyup="calculateTiles()" onchange="calculateTiles()">
                                 <span class="absolute right-3 top-3 text-xs text-gray-400 font-mono">cm</span>
                             </div>
                         </div>
@@ -230,7 +232,8 @@
                     <div id="tile_rate_input" class="col-span-2 hidden">
                         <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">每平米用量</label>
                         <div class="relative">
-                            <input type="number" id="tile_rate" placeholder="11" value="11" class="w-full p-3 pr-12" oninput="calculateTiles()">
+                            <input type="number" id="tile_rate" placeholder="11" value="11" class="w-full p-3 pr-12" 
+                                   oninput="calculateTiles()" onkeyup="calculateTiles()" onchange="calculateTiles()">
                             <span class="absolute right-3 top-3 text-xs text-gray-400 font-mono">片/m²</span>
                         </div>
                     </div>
@@ -253,7 +256,7 @@
                         <label class="text-xs text-brand-dark font-bold">預抓損耗</label>
                         <input type="number" id="waste_percent" value="10" 
                                class="w-12 p-0 bg-transparent border-none text-right text-xs font-mono font-bold text-brand-main focus:ring-0" 
-                               oninput="calculateTiles()">
+                               oninput="calculateTiles()" onkeyup="calculateTiles()" onchange="calculateTiles()">
                         <span class="text-xs text-brand-dark font-bold">%</span>
                     </div>
                 </div>
@@ -277,7 +280,13 @@
                 <!-- Summary Card -->
                 <section class="card p-0 overflow-hidden border-t-4 border-t-brand-main shadow-xl">
                     <div class="p-6 bg-white">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Total Estimation</h3>
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Estimation</h3>
+                            <!-- Manual Refresh Button (Just in case) -->
+                            <button onclick="calculateTiles()" class="text-brand-main hover:bg-brand-light p-1 rounded transition-colors" title="強制重新計算">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            </button>
+                        </div>
                         
                         <div class="space-y-4">
                             <div>
@@ -413,12 +422,14 @@
                         <div class="relative">
                             <input type="number" id="area_length_${id}" placeholder="長度 cm" data-id="${id}"
                                    class="area-length w-full p-2.5 text-xs border border-gray-200 rounded-md focus:border-brand-main bg-gray-50 focus:bg-white"
-                                   value="${lengthValue}" min="0.1" step="0.1" oninput="calculateTiles()">
+                                   value="${lengthValue}" min="0.1" step="0.1" 
+                                   oninput="calculateTiles()" onkeyup="calculateTiles()" onchange="calculateTiles()">
                         </div>
                         <div class="relative">
                             <input type="number" id="area_width_${id}" placeholder="寬度 cm" data-id="${id}"
                                    class="area-width w-full p-2.5 text-xs border border-gray-200 rounded-md focus:border-brand-main bg-gray-50 focus:bg-white"
-                                   value="${widthValue}" min="0.1" step="0.1" oninput="calculateTiles()">
+                                   value="${widthValue}" min="0.1" step="0.1" 
+                                   oninput="calculateTiles()" onkeyup="calculateTiles()" onchange="calculateTiles()">
                         </div>
                     </div>
 
@@ -501,21 +512,22 @@
             const calcMode = checkedModeElement.value;
 
             const tileModel = document.getElementById('tile_model').value.trim() || "未指定";
-            const tileLength = parseFloat(document.getElementById('tile_length').value);
-            const tileWidth = parseFloat(document.getElementById('tile_width').value);
-            const tileRate = parseFloat(document.getElementById('tile_rate').value);
-            // 改進：如果損耗是空值，預設為 0，避免計算中斷
+            // 使用 || 0 確保就算被清空也不會是 NaN
+            const tileLength = parseFloat(document.getElementById('tile_length').value) || 0;
+            const tileWidth = parseFloat(document.getElementById('tile_width').value) || 0;
+            const tileRate = parseFloat(document.getElementById('tile_rate').value) || 0;
+            
             const wastePercentInput = document.getElementById('waste_percent').value;
             const wastePercent = wastePercentInput === "" ? 0 : parseFloat(wastePercentInput);
 
+            // 嚴格驗證，如果基礎數值有誤，直接歸零，避免算出無限大
             let isTileInputValid = true;
             if (calcMode === 'dimension') {
-                if (!tileLength || tileLength <= 0 || !tileWidth || tileWidth <= 0) isTileInputValid = false;
+                if (tileLength <= 0 || tileWidth <= 0) isTileInputValid = false;
             } else {
-                if (!tileRate || tileRate <= 0) isTileInputValid = false;
+                if (tileRate <= 0) isTileInputValid = false;
             }
 
-            // 檢查基本驗證，但允許 wastePercent 為 0
             if (!isTileInputValid || isNaN(wastePercent) || wastePercent < 0) {
                 resetResults();
                 return;
@@ -530,18 +542,15 @@
             }
 
             areas.forEach(area => {
-                // 改進：更明確地選取長寬輸入框，避免結構變更出錯
                 const lenInput = area.querySelector('.area-length');
                 const widInput = area.querySelector('.area-width');
                 
-                // 改進：將空值視為 0，防止 NaN 擴散
                 const len = lenInput ? (parseFloat(lenInput.value) || 0) : 0;
                 const wid = widInput ? (parseFloat(widInput.value) || 0) : 0;
 
                 if (len > 0 && wid > 0) {
                     totalAreaSqUnit += len * wid;
                 }
-                // 單行不完整時不計算該行，但不中斷整體計算
             });
 
             if (totalAreaSqUnit <= 0) {
@@ -563,7 +572,7 @@
             const wastePiecesFloat = basePiecesFloat * (wastePercent / 100);
             const finalPieces = Math.ceil(basePiecesFloat + wastePiecesFloat);
 
-            // Updated Brand Text for LU LU Tiles
+            // 更新畫面
             document.getElementById('result_pieces').textContent = finalPieces.toLocaleString('en-US');
             document.getElementById('result_area_sq_unit').textContent = parseFloat(totalPing.toFixed(2)).toLocaleString('en-US');
             document.getElementById('result_area_m2').textContent = parseFloat(totalAreaM2.toFixed(2)).toLocaleString('en-US');
@@ -579,7 +588,8 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             addArea('300', '200');
-            updateTileInputs();
+            // 確保延遲一下再計算，確保 DOM 都好了
+            setTimeout(calculateTiles, 100);
         });
     </script>
 </body>
