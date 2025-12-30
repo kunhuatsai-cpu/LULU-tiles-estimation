@@ -512,19 +512,19 @@
         (function init() {
             console.log("LU LU Tiles Calculator Loaded");
             
-            // 綁定全域事件 (Event Delegation)
-            const events = ['input', 'change', 'click', 'keyup'];
+            // 強力事件綁定：只要有點擊、輸入、變更，全部觸發
+            const events = ['input', 'change', 'click', 'keyup', 'touchend'];
             
             events.forEach(evt => {
                 document.body.addEventListener(evt, function(e) {
-                    // 如果是 INPUT 或 Radio 改變，就觸發計算
-                    if (e.target.tagName === 'INPUT' || 
-                        (e.target.tagName === 'LABEL' && e.target.querySelector('input'))) {
-                        // 給一點延遲確保數值已更新
-                        setTimeout(window.calculateTiles, 0);
-                    }
+                    // 給一點延遲確保 UI 狀態已更新 (例如 Radio Button 狀態變更後)
+                    setTimeout(window.calculateTiles, 50);
                 });
             });
+
+            // 終極保險：每 500ms 自動檢查一次
+            // 這是一個針對「沒反應」問題的強力解法，確保數值永遠同步
+            setInterval(window.calculateTiles, 500);
 
             // 綁定按鈕
             const btnAdd = document.getElementById('btn_add_area');
