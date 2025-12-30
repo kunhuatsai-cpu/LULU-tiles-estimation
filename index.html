@@ -508,30 +508,37 @@
             }
         };
 
-        // --- 5. 初始化與事件綁定 (關鍵修正) ---
-        document.addEventListener('DOMContentLoaded', function() {
+        // --- 5. 初始化與事件綁定 (Force Update) ---
+        (function init() {
+            console.log("LU LU Tiles Calculator Loaded");
+            
             // 綁定全域事件 (Event Delegation)
-            // 同時監聽 'input' (輸入文字) 和 'change' (切換Radio/Checkbox/Enter)
-            // 這樣可以確保介面切換時，數字也會馬上連動
-            ['input', 'change'].forEach(evt => {
+            const events = ['input', 'change', 'click', 'keyup'];
+            
+            events.forEach(evt => {
                 document.body.addEventListener(evt, function(e) {
-                    if (e.target.tagName === 'INPUT') {
-                        window.calculateTiles();
+                    // 如果是 INPUT 或 Radio 改變，就觸發計算
+                    if (e.target.tagName === 'INPUT' || 
+                        (e.target.tagName === 'LABEL' && e.target.querySelector('input'))) {
+                        // 給一點延遲確保數值已更新
+                        setTimeout(window.calculateTiles, 0);
                     }
                 });
             });
 
             // 綁定按鈕
             const btnAdd = document.getElementById('btn_add_area');
-            if (btnAdd) btnAdd.addEventListener('click', () => window.addArea());
+            if (btnAdd) btnAdd.onclick = () => window.addArea();
 
             const btnCopy = document.getElementById('btn_copy');
-            if (btnCopy) btnCopy.addEventListener('click', window.copyToClipboard);
+            if (btnCopy) btnCopy.onclick = window.copyToClipboard;
 
             // 預設載入一筆並計算
-            window.addArea(300, 200);
+            if (document.getElementById('areas_container').children.length === 0) {
+                window.addArea(300, 200);
+            }
             window.calculateTiles();
-        });
+        })();
 
     </script>
 </body>
