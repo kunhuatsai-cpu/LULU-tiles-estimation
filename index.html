@@ -359,7 +359,6 @@
         }
 
         // --- 2. 核心計算邏輯 ---
-        // 顯式宣告為 window.calculateTiles 確保全域可存取
         window.calculateTiles = function() {
             try {
                 // 1. 取得計算模式
@@ -370,7 +369,6 @@
                 const dimInputs = document.getElementById('tile_dimension_inputs');
                 const rateInput = document.getElementById('tile_rate_input');
                 
-                // 使用 CSS class 'hidden' 進行切換
                 if (mode === 'dimension') {
                     dimInputs.classList.remove('hidden');
                     dimInputs.classList.add('grid');
@@ -385,10 +383,8 @@
                 const tileLen = getVal('tile_length');
                 const tileWid = getVal('tile_width');
                 const tileRate = getVal('tile_rate');
-                // 損耗允許為 0
                 const wasteEl = document.getElementById('waste_percent');
-                const wasteVal = wasteEl && wasteEl.value !== "" ? parseFloat(wasteEl.value) : 0;
-                const waste = isNaN(wasteVal) ? 0 : wasteVal;
+                const waste = wasteEl && wasteEl.value !== "" ? parseFloat(wasteEl.value) : 0;
                 
                 // 4. 計算總面積 (遍歷所有行)
                 let totalAreaSqCm = 0;
@@ -408,28 +404,29 @@
                 const totalM2 = totalAreaSqCm / 10000;
                 const totalPing = totalM2 * 0.3025;
 
-                // 6. 計算片數
+                // 6. 計算片數 (修復無限大問題)
                 let basePieces = 0;
-                let isValid = true;
-
+                
                 if (totalM2 > 0) {
                     if (mode === 'dimension') {
+                        // 修正：確保尺寸大於 0 才計算，避免 Infinity
                         if (tileLen > 0 && tileWid > 0) {
                             const oneTileM2 = (tileLen * tileWid) / 10000;
                             basePieces = totalM2 / oneTileM2;
                         } else {
-                            isValid = false;
+                            basePieces = 0;
                         }
                     } else {
                         if (tileRate > 0) {
                             basePieces = totalM2 * tileRate;
                         } else {
-                            isValid = false;
+                            basePieces = 0;
                         }
                     }
                 }
 
-                if (!isValid) basePieces = 0;
+                // 防呆：確保結果不是 NaN 或 Infinity
+                if (!isFinite(basePieces)) basePieces = 0;
 
                 const wastePieces = basePieces * (waste / 100);
                 const finalPieces = Math.ceil(basePieces + wastePieces);
@@ -440,12 +437,12 @@
                 document.getElementById('result_area_m2').textContent = totalM2.toFixed(2);
                 document.getElementById('base_pieces').textContent = Math.ceil(basePieces).toLocaleString('en-US');
                 document.getElementById('waste_pieces').textContent = Math.ceil(wastePieces).toLocaleString('en-US');
-                document.getElementById('waste_display').textContent = waste;
+                document.getElementById('waste_display').textContent = isNaN(waste) ? '0' : waste;
 
                 // 8. 準備複製文字
                 const modelName = document.getElementById('tile_model').value || '未指定';
                 const today = new Date().toLocaleDateString('zh-TW');
-                const copyStr = `【LU LU Tiles 庫存查詢】\nDATE: ${today}\n------------------------------\n型號: ${modelName}\n\n需求總數: ${finalPieces} 片\n(含 ${waste}% 損耗)\n\n總面積: ${totalM2.toFixed(2)} M2 (${totalPing.toFixed(2)} 坪)\n------------------------------`;
+                const copyStr = `【LU LU Tiles 庫存查詢】\nDATE: ${today}\n------------------------------\n型號: ${modelName}\n\n需求總數: ${finalPieces} 片\n(含 ${isNaN(waste) ? 0 : waste}% 損耗)\n\n總面積: ${totalM2.toFixed(2)} M2 (${totalPing.toFixed(2)} 坪)\n------------------------------`;
                 document.getElementById('copy_text_area').value = copyStr;
 
             } catch (e) {
@@ -496,36 +493,37 @@
         // --- 4. 複製功能 ---
         window.copyToClipboard = function() {
             window.calculateTiles();
-            const text = document.getElementById("copy_text_area");
-            text.select();
-            try {
-                document.execCommand('copy');
+            const textArea = document.getElementById("copy_text_area");
+            const text = textArea.value;
+
+            // 優先嘗試現代 Clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(showToast).catch(fallbackCopy);
+            } else {
+                fallbackCopy();
+            }
+
+            function fallbackCopy() {
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast();
+                } catch (err) {
+                    alert("複製失敗，請手動複製");
+                }
+            }
+
+            function showToast() {
                 const toast = document.getElementById('toast-msg');
                 toast.style.opacity = '1';
                 setTimeout(() => toast.style.opacity = '0', 2000);
-            } catch (err) {
-                alert("複製失敗");
             }
         };
 
-        // --- 5. 初始化與事件綁定 (Force Update) ---
-        (function init() {
-            console.log("LU LU Tiles Calculator Loaded");
+        // --- 5. 初始化與事件綁定 ---
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("LU LU Tiles Calculator Loaded (Safe Mode)");
             
-            // 強力事件綁定：只要有點擊、輸入、變更，全部觸發
-            const events = ['input', 'change', 'click', 'keyup', 'touchend'];
-            
-            events.forEach(evt => {
-                document.body.addEventListener(evt, function(e) {
-                    // 給一點延遲確保 UI 狀態已更新 (例如 Radio Button 狀態變更後)
-                    setTimeout(window.calculateTiles, 50);
-                });
-            });
-
-            // 終極保險：每 500ms 自動檢查一次
-            // 這是一個針對「沒反應」問題的強力解法，確保數值永遠同步
-            setInterval(window.calculateTiles, 500);
-
             // 綁定按鈕
             const btnAdd = document.getElementById('btn_add_area');
             if (btnAdd) btnAdd.onclick = () => window.addArea();
@@ -533,12 +531,27 @@
             const btnCopy = document.getElementById('btn_copy');
             if (btnCopy) btnCopy.onclick = window.copyToClipboard;
 
-            // 預設載入一筆並計算
+            // 全域事件監聽：輸入、點擊、變更
+            // 移除了 setInterval，改用更乾淨的監聽
+            const events = ['input', 'change', 'click', 'keyup'];
+            events.forEach(evt => {
+                document.body.addEventListener(evt, function(e) {
+                    // 如果是輸入框或按鈕，稍微延遲確保值已更新
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.classList.contains('tab-radio')) {
+                        // 使用 requestAnimationFrame 或短延遲來確保 UI 渲染完畢
+                        setTimeout(window.calculateTiles, 10);
+                    }
+                });
+            });
+
+            // 預設載入一筆
             if (document.getElementById('areas_container').children.length === 0) {
                 window.addArea(300, 200);
             }
+            
+            // 初始計算
             window.calculateTiles();
-        })();
+        });
 
     </script>
 </body>
