@@ -41,7 +41,7 @@
             letter-spacing: -0.02em;
         }
 
-        input[type="number"], input[type="text"], textarea {
+        input[type="number"], input[type="text"], textarea, select {
             background-color: #F9FAFB;
             border: 1px solid var(--color-border);
             border-radius: 8px;
@@ -51,7 +51,7 @@
             color: var(--color-text-main);
         }
         
-        input:focus, textarea:focus {
+        input:focus, textarea:focus, select:focus {
             background-color: #FFFFFF;
             border-color: var(--color-accent);
             box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.1);
@@ -162,7 +162,6 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="text-xl sm:text-2xl font-bold text-gray-800 leading-tight tracking-tight">LU LU Tiles</h1>
-                        <!-- Status Indicator for Debugging -->
                         <div id="system-status" class="status-dot" title="系統狀態"></div>
                     </div>
                     <p class="text-[10px] sm:text-xs text-brand-main font-medium uppercase tracking-wider bg-brand-light inline-block px-1.5 py-0.5 rounded mt-0.5">Quantity Estimation</p>
@@ -217,6 +216,7 @@
                         </label>
                     </div>
 
+                    <!-- Mode A: Dimension -->
                     <div id="tile_dimension_inputs" class="col-span-2 grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">長度 (Length)</label>
@@ -232,13 +232,27 @@
                                 <span class="absolute right-3 top-3 text-xs text-gray-400 font-mono">cm</span>
                             </div>
                         </div>
+                        <div class="col-span-2 text-[10px] text-gray-400 flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            若是馬賽克，請輸入「整張聯結 (Sheet)」的尺寸。
+                        </div>
                     </div>
 
+                    <!-- Mode B: Rate (Updated with Unit Switcher) -->
                     <div id="tile_rate_input" class="col-span-2 hidden">
-                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">每平米用量</label>
-                        <div class="relative">
-                            <input type="number" id="tile_rate" placeholder="11" value="11" class="w-full p-3 pr-12 js-calc-trigger" inputmode="decimal" step="any" min="0">
-                            <span class="absolute right-3 top-3 text-xs text-gray-400 font-mono">片/m²</span>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">單位用量</label>
+                        <div class="flex gap-2">
+                            <div class="relative flex-1">
+                                <input type="number" id="tile_rate" placeholder="115" value="115" class="w-full p-3 js-calc-trigger" inputmode="decimal" step="any" min="0">
+                            </div>
+                            <select id="rate_unit" class="w-32 p-3 text-xs font-bold js-calc-trigger bg-white">
+                                <option value="ping" selected>片 / 坪</option>
+                                <option value="m2">片 / m²</option>
+                            </select>
+                        </div>
+                        <div class="mt-2 text-[10px] text-gray-400 flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            若使用「坪」計算，請確認選對單位以免誤差。
                         </div>
                     </div>
                 </div>
@@ -297,7 +311,7 @@
                                 </div>
                                 <div>
                                     <div class="text-[10px] text-gray-400 font-bold uppercase mb-1">坪數 (Ping)</div>
-                                    <div class="text-xl font-bold font-mono-num text-gray-600" id="result_area_sq_unit">0</div>
+                                    <div class="text-xl font-bold font-mono-num text-gray-600" id="result_area_ping">0</div>
                                 </div>
                             </div>
                         </div>
@@ -305,7 +319,7 @@
                     
                     <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 text-xs text-gray-500 space-y-2 font-mono">
                         <div class="flex justify-between">
-                            <span>Base Qty:</span>
+                            <span>Base Qty (純用量):</span>
                             <span class="font-bold text-gray-700" id="base_pieces">0</span>
                         </div>
                         <div class="flex justify-between">
@@ -343,13 +357,6 @@
                             </div>
                             <span class="font-mono">04-22512151</span>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg></span>
-                                <span class="font-bold">FAX</span>
-                            </div>
-                            <span class="font-mono">04-22952118</span>
-                        </div>
                     </div>
                 </div>
 
@@ -359,18 +366,11 @@
 
     <textarea id="copy_text_area" class="fixed top-0 left-0 opacity-0 pointer-events-none h-0 w-0"></textarea>
 
-    <!-- 
-        CRITICAL SCRIPT FIX FOR PRODUCTION
-        使用 IIFE 和 DOMContentLoaded 確保在任何環境下都能執行
-    -->
+    <!-- 系統核心程式 -->
     <script>
         (function() {
-            // 定義狀態變數
             let areaIdCounter = 0;
 
-            // --- 核心邏輯 ---
-            
-            // 取得數值，如果是空或 NaN 則回傳 0
             function getVal(id) {
                 const el = document.getElementById(id);
                 if (!el) return 0;
@@ -378,14 +378,13 @@
                 return isNaN(val) ? 0 : val;
             }
 
-            // 計算主程式
             function calculateTiles() {
                 try {
                     // 1. 取得計算模式
                     const modeEl = document.querySelector('input[name="calc_mode"]:checked');
                     const mode = modeEl ? modeEl.value : 'dimension';
 
-                    // 2. 切換顯示介面
+                    // 2. 切換 UI 顯示
                     const dimInputs = document.getElementById('tile_dimension_inputs');
                     const rateInput = document.getElementById('tile_rate_input');
                     
@@ -394,21 +393,25 @@
                             dimInputs.classList.remove('hidden');
                             dimInputs.classList.add('grid');
                             rateInput.classList.add('hidden');
+                            rateInput.classList.remove('block');
                         } else {
                             dimInputs.classList.add('hidden');
                             dimInputs.classList.remove('grid');
                             rateInput.classList.remove('hidden');
+                            rateInput.classList.add('block');
                         }
                     }
 
-                    // 3. 取得基礎參數
+                    // 3. 取得變數
                     const tileLen = getVal('tile_length');
                     const tileWid = getVal('tile_width');
-                    const tileRate = getVal('tile_rate');
-                    const wasteEl = document.getElementById('waste_percent');
-                    const waste = wasteEl && wasteEl.value !== "" ? parseFloat(wasteEl.value) : 0;
+                    const inputRate = getVal('tile_rate');
+                    const rateUnit = document.getElementById('rate_unit') ? document.getElementById('rate_unit').value : 'ping';
                     
-                    // 4. 計算總面積
+                    const wasteEl = document.getElementById('waste_percent');
+                    const wastePercent = wasteEl && wasteEl.value !== "" ? parseFloat(wasteEl.value) : 0;
+                    
+                    // 4. 計算總面積 (平方公分 -> 平方米 & 坪)
                     let totalAreaSqCm = 0;
                     const rows = document.querySelectorAll('.area-item');
                     rows.forEach(row => {
@@ -422,27 +425,38 @@
                         }
                     });
 
-                    // 5. 轉換單位
                     const totalM2 = totalAreaSqCm / 10000;
+                    // 標準坪數轉換 1 m2 = 0.3025 坪
                     const totalPing = totalM2 * 0.3025;
 
-                    // 6. 計算片數
+                    // 5. 計算 Base Pieces (純用量，不含損耗)
                     let basePieces = 0;
+
                     if (totalM2 > 0) {
                         if (mode === 'dimension') {
+                            // 尺寸模式：直接用面積除
                             if (tileLen > 0 && tileWid > 0) {
                                 const oneTileM2 = (tileLen * tileWid) / 10000;
                                 basePieces = totalM2 / oneTileM2;
                             }
                         } else {
-                            if (tileRate > 0) {
-                                basePieces = totalM2 * tileRate;
+                            // 建議用量模式：根據選擇的單位 (坪/m2)
+                            if (inputRate > 0) {
+                                if (rateUnit === 'ping') {
+                                    // 使用者輸入 "每坪幾片" -> 總坪數 * 每坪片數
+                                    basePieces = totalPing * inputRate;
+                                } else {
+                                    // 使用者輸入 "每m2幾片" -> 總m2 * 每m2片數
+                                    basePieces = totalM2 * inputRate;
+                                }
                             }
                         }
                     }
 
                     if (!isFinite(basePieces)) basePieces = 0;
-                    const wastePieces = basePieces * (waste / 100);
+
+                    // 6. 加上損耗 (在 Base 上外加)
+                    const wastePieces = basePieces * (wastePercent / 100);
                     const finalPieces = Math.ceil(basePieces + wastePieces);
 
                     // 7. 更新畫面
@@ -452,17 +466,20 @@
                     };
 
                     safeSetText('result_pieces', finalPieces.toLocaleString('en-US'));
-                    safeSetText('result_area_sq_unit', totalPing.toFixed(2));
+                    safeSetText('result_area_ping', totalPing.toFixed(2)); // 改顯示坪數小數點2位
                     safeSetText('result_area_m2', totalM2.toFixed(2));
+                    
+                    // 顯示純用量與損耗量 (無條件進位以便查看)
                     safeSetText('base_pieces', Math.ceil(basePieces).toLocaleString('en-US'));
                     safeSetText('waste_pieces', Math.ceil(wastePieces).toLocaleString('en-US'));
-                    safeSetText('waste_display', isNaN(waste) ? '0' : waste);
+                    safeSetText('waste_display', isNaN(wastePercent) ? '0' : wastePercent);
 
                     // 8. 準備複製文字
                     const modelNameEl = document.getElementById('tile_model');
                     const modelName = modelNameEl ? (modelNameEl.value || '未指定') : '未指定';
                     const today = new Date().toLocaleDateString('zh-TW');
-                    const copyStr = `【LU LU Tiles 庫存查詢】\nDATE: ${today}\n------------------------------\n型號: ${modelName}\n\n需求總數: ${finalPieces} 片\n(含 ${isNaN(waste) ? 0 : waste}% 損耗)\n\n總面積: ${totalM2.toFixed(2)} M2 (${totalPing.toFixed(2)} 坪)\n------------------------------`;
+                    
+                    const copyStr = `【LU LU Tiles 庫存查詢】\nDATE: ${today}\n------------------------------\n型號: ${modelName}\n\n需求總數: ${finalPieces} 片\n(含 ${isNaN(wastePercent) ? 0 : wastePercent}% 損耗)\n\n純用量: ${Math.ceil(basePieces)} 片\n總面積: ${totalPing.toFixed(2)} 坪 (${totalM2.toFixed(2)} m²)\n------------------------------`;
                     
                     const copyArea = document.getElementById('copy_text_area');
                     if (copyArea) copyArea.value = copyStr;
@@ -472,7 +489,6 @@
                 }
             }
 
-            // 新增區域
             function addArea(initL = '', initW = '') {
                 areaIdCounter++;
                 const container = document.getElementById('areas_container');
@@ -484,7 +500,6 @@
                 div.className = "area-item group grid grid-cols-12 gap-3 items-center bg-white p-2 rounded-lg border border-gray-100 hover:border-brand-main/50 hover:shadow-sm transition-all";
                 div.setAttribute('data-id', areaIdCounter);
                 
-                // 注意：這裡不使用 onclick，改用 class 讓父層監聽
                 div.innerHTML = `
                     <div class="col-span-1 flex justify-center">
                         <span class="font-mono text-[10px] font-bold text-brand-main bg-brand-light w-6 h-6 flex items-center justify-center rounded-full row-num">${rowCount}</span>
@@ -504,19 +519,16 @@
                 calculateTiles();
             }
 
-            // 移除區域
             function removeArea(btn) {
                 const item = btn.closest('.area-item');
                 if (item) {
                     item.remove();
-                    // 重編號
                     const rows = document.querySelectorAll('.area-item .row-num');
                     rows.forEach((span, idx) => span.textContent = idx + 1);
                     calculateTiles();
                 }
             }
 
-            // 複製功能
             function copyToClipboard() {
                 calculateTiles();
                 const textArea = document.getElementById("copy_text_area");
@@ -549,58 +561,38 @@
                 }
             }
 
-            // --- 事件綁定 (DOMContentLoaded) ---
             document.addEventListener('DOMContentLoaded', function() {
-                console.log("System Initializing...");
-                
-                // 1. 綁定主按鈕 (Add Area)
+                // Initialize
                 const btnAdd = document.getElementById('btn_add_area');
-                if (btnAdd) {
-                    btnAdd.addEventListener('click', () => addArea());
-                }
+                if (btnAdd) btnAdd.addEventListener('click', () => addArea());
 
-                // 2. 綁定複製按鈕
                 const btnCopy = document.getElementById('btn_copy');
-                if (btnCopy) {
-                    btnCopy.addEventListener('click', copyToClipboard);
-                }
+                if (btnCopy) btnCopy.addEventListener('click', copyToClipboard);
 
-                // 3. 事件委派 (Event Delegation) - 處理所有動態產生的輸入與刪除
-                // 監聽整個 document 的點擊，如果是刪除按鈕就執行
                 document.body.addEventListener('click', function(e) {
-                    // 處理刪除按鈕
                     if (e.target.closest('.btn-remove-area')) {
                         removeArea(e.target.closest('.btn-remove-area'));
                     }
                 });
 
-                // 4. 監聽所有輸入變更 (計算觸發)
-                // 使用 input 事件 (即時) 和 change 事件 (失去焦點)
                 const triggerEvents = ['input', 'change', 'keyup'];
                 triggerEvents.forEach(evt => {
                     document.body.addEventListener(evt, function(e) {
-                        // 只要是 input, select, textarea 或 radio 變更，就計算
                         if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
-                            // 使用 requestAnimationFrame 避免阻塞 UI
                             requestAnimationFrame(calculateTiles);
                         }
                     });
                 });
 
-                // 5. 初始化畫面
+                // Default Area
                 const container = document.getElementById('areas_container');
                 if (container && container.children.length === 0) {
                     addArea(300, 200);
                 }
 
-                // 6. 點亮狀態燈 (表示 JS 已成功載入並執行)
                 const statusDot = document.getElementById('system-status');
-                if (statusDot) {
-                    statusDot.classList.add('ready');
-                    statusDot.title = "系統運作中";
-                }
+                if (statusDot) statusDot.classList.add('ready');
 
-                // 執行第一次計算
                 calculateTiles();
             });
 
